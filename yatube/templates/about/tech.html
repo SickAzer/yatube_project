@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  Технологии
+{% endblock %}
+
+{% block content %}
+<div class="container py-5 col-12 col-md-10">
+  <div class="border rounded row bg-light text-dark" style="padding: 20px">
+    <div class="row">
+      <h2>Было использовано при создании:</h2>
+      {% comment %}
+        Боковой блок со списком технологий 
+        Займет всю ширину блока на мобильном
+        и 25% при размерах экрана ≥768px
+      {% endcomment %}
+      <aside class="col-12 col-md-3">
+        <ul class="list-group list-group-flush border rounded bg-white text-dark">
+          <li class="list-group-item">
+            <a href="https://www.python.org/" style="text-decoration: none" >
+              <img src="{% static 'img/py.png' %}" width="30" height="30" alt="">
+              Python</a>
+          </li>
+          <li class="list-group-item">
+            <a href="https://www.djangoproject.com/" style="text-decoration: none" >
+            <img src="{% static 'img/dj.png' %}" width="30" height="30" alt="">
+            Django</a>
+          </li>
+          <li class="list-group-item">
+            <a href="https://getbootstrap.com/" style="text-decoration: none" >
+            <img src="{% static 'img/bs.png' %}" width="30" height="25" alt="">
+            Bootstrap</a>
+          </li>
+          <li class="list-group-item">
+            <a href="https://code.visualstudio.com/" style="text-decoration: none" >
+            <img src="{% static 'img/vs.png' %}" width="30" height="30" alt="">
+            VS Code </a>
+          </li>
+        </ul>
+      </aside>
+      {% comment %}
+        Статья  
+        Займет всю ширину блока на мобильном
+        и 75% при размерах экрана ≥768px
+      {% endcomment %}
+      <article class="col-12 col-md-9">
+        <p>Этот сайт был сделан при помощи указанных здесь технологий. Им противостояли:
+          недосып, невнимательность, невыполненные миграции, стихийные бедствия, а также храп соседа по комнате.</p>
+      </article
+    </div>
+  </div>
+</div>
+{% endblock %}

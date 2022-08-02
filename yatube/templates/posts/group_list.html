@@ -1,22 +1,38 @@
 {% extends 'base.html' %} 
 
 {% block title %}
-  Лев Толстой – зеркало русской революции.
+  Посты сообщества {{ group }}
 {% endblock %}
 
 {% block content %}
-  <h1>Лев Толстой – зеркало русской революции.</h1>
-  <p>Записи сообщества {{ group }}</p>
-  {% for post in posts %}
-  <ul>
-    <li>
-      Автор: {{ post.author.get_full_name }}
-    </li>
-    <li>
-      Дата публикации: {{ post.pub_date|date:"d E Y" }}
-    </li>
-  </ul>
-  <p>{{ post.text }}</p> 
-  {% if not forloop.last %}<hr>{% endif %}
-  {% endfor %}
+  <div class="container py-5 col-12 col-md-10">
+    <article class="border rounded bg-light text-dark" style="padding: 20px">
+      <h1>
+        Группа "{{ group }}"
+      </h1>
+      <p>
+          {{ group.description }}
+      </p>
+      <hr>
+      {% for post in page_obj %}
+        <article class="border rounded bg-white text-dark" style="padding: 15px; margin-bottom: 15px">
+          <ul>
+            <p class="text-muted">
+              <em>
+                Дата публикации: {{ post.pub_date|date:"d E Y" }}<br>
+              </em>
+            </p>
+            <p>
+              <strong>
+                Автор:  
+                <a class="text-decoration-none" href="{% url 'posts:profile' post.author %}">{{ post.author.get_full_name }}</a>
+              </strong>
+            </p>
+          </ul>
+          <p>{{ post.text }}</p>    
+        </article>
+      {% endfor %}
+    </article>
+    {% include 'posts/includes/paginator.html' %}
+  </div>
 {% endblock %}  

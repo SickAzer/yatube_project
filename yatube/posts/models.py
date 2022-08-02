@@ -1,15 +1,21 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.apps import apps
 
 User = get_user_model()
+
+
 class Group(models.Model):
-    title = models.CharField(max_length=200, default='Imps')
-    slug = models.SlugField(default='null')
+    title = models.CharField(max_length=200, unique=True)
+    slug = models.SlugField(unique=True)
     description = models.TextField()
 
+    class Meta:
+        verbose_name = 'Группа'
+        verbose_name_plural = 'Группы'
+
     def __str__(self):
-        return str(self.title)
+        return self.title
+
 
 class Post(models.Model):
     text = models.TextField()
@@ -17,13 +23,21 @@ class Post(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='posts'
+        related_name='posts',
     )
     group = models.ForeignKey(
         Group,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,  # Изменил на models.SET_NULL
         blank=True,
-        null=True
+        null=True,
+        related_name='posts'
     )
 
+    # Вывел ordering на уровень модели
+    class Meta:
+        ordering = ['-pub_date']
+        verbose_name = 'Пост'
+        verbose_name_plural = 'Посты'
 
+    def __str__(self):
+        return self.text

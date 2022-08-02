@@ -1,16 +1,19 @@
 {% extends 'base.html' %}
 
 {% block title %}
-  Последние обновления на сайте
+  Профайл пользователя {{ author.get_full_name }}
 {% endblock %}
 
 {% block content %}
   <div class="container py-5 col-12 col-md-10">
-    <article class="border rounded bg-light text-dark" style="padding: 20px">
+    <article class="border rounded bg-light text-dark" style="padding: 20px">        
       <h1>
-        Последние обновления на сайте
+        Все посты пользователя {{ author.get_full_name }} 
       </h1>
-      <hr>
+      <p>
+        Всего постов: {{ author.posts.count }} 
+      </p>
+      <hr>   
       {% for post in page_obj %}
         <article class="border rounded bg-white text-dark" style="padding: 15px; margin-bottom: 15px">
           <ul>
@@ -19,12 +22,6 @@
                 Дата публикации: {{ post.pub_date|date:"d E Y" }}<br>
               </em>
             </p>
-            <p>
-              <strong>
-                Автор:  
-                <a class="text-decoration-none" href="{% url 'posts:profile' post.author %}">{{ post.author.get_full_name }}</a>
-              </strong>
-            </p>
           </ul>
           <p>{{ post.text }}</p>    
           {% if post.group %}
@@ -32,9 +29,12 @@
               Группа <a class="text-decoration-none" href="{% url 'posts:group_list' post.group.slug %}"><em>"{{ post.group }}"</em></a>
             </p>
           {% endif %}
+          <em>  
+            <a href="{% url 'posts:post_detail' post.pk %}">Подробности поста</a> 
+          </em>
         </article>
-      {% endfor %}
-    </article>
+      {% endfor %} 
+    </article>       
     {% include 'posts/includes/paginator.html' %}
   </div>
-{% endblock %}  
+{% endblock %}
