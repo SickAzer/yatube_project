@@ -65,9 +65,9 @@ def post_create(request):
     groups = Group.objects.all()
     form = PostForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        new_post = form.save(commit=False)
-        new_post.author = request.user
-        new_post.save()
+        post = form.save(commit=False)
+        post.author = request.user
+        post.save()
         return redirect('posts:profile', username=request.user)
     context = {
         'form': form,
@@ -88,8 +88,6 @@ def post_edit(request, post_id):
     # Добавил instance в форму при редактировании
     form = PostForm(request.POST or None, instance=post)
     if request.method == 'POST' and form.is_valid():
-        post.text = form.cleaned_data['text']
-        post.group = form.cleaned_data['group']
         post.save(update_fields=['text', 'group'])
         return redirect('posts:post_detail', post_id=post_id)
     context = {
