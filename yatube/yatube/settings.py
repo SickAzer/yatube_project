@@ -25,7 +25,12 @@ SECRET_KEY = 'u3s7pe5u^dm%)*2_h(hn@ciisdci4uk0$&64q0)3060(_3ops3x'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '[::1]',
+    'testserver',
+]
 
 
 # Application definition
@@ -139,3 +144,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
 # указываем директорию, в которую будут складываться файлы писем
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
+
+# Максимальное количество постов, отбражаемых паджинатором на странице
+MAX_POSTS_PER_PAGE = 10
