@@ -46,13 +46,11 @@ def profile(request, username):
 def post_detail(request, post_id):
     # Здесь больше будет уместна get_object_or_404
     post = get_object_or_404(Post, pk=post_id)
-    posts_count = post.author.posts.count()
     is_author = False
     if post.author == request.user:
         is_author = True
     context = {
         'post': post,
-        'posts_count': posts_count,
         'is_author': is_author
     }
     return render(request, 'posts/post_detail.html', context)
@@ -62,7 +60,6 @@ def post_detail(request, post_id):
 @login_required
 def post_create(request):
     is_edit = False
-    groups = Group.objects.all()
     form = PostForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         post = form.save(commit=False)
@@ -71,7 +68,6 @@ def post_create(request):
         return redirect('posts:profile', username=request.user)
     context = {
         'form': form,
-        'groups': groups,
         'is_edit': is_edit
     }
     return render(request, 'posts/create_post.html', context)
@@ -84,7 +80,6 @@ def post_edit(request, post_id):
     is_edit = True
     if post.author != request.user:
         return redirect('posts:post_detail', post_id=post_id)
-    groups = Group.objects.all()
     # Добавил instance в форму при редактировании
     form = PostForm(request.POST or None, instance=post)
     if request.method == 'POST' and form.is_valid():
@@ -93,7 +88,6 @@ def post_edit(request, post_id):
     context = {
         'form': form,
         'post': post,
-        'groups': groups,
         'is_edit': is_edit
     }
     return render(request, 'posts/create_post.html', context)
