@@ -4,12 +4,14 @@ from django.urls import reverse
 
 User = get_user_model()
 
-class UsersFormsTests(TestCase):   
+
+class UsersFormsTests(TestCase):
     def setUp(self):
         # Создаем неавторизованный клиент
         self.guest_client = Client()
-        
+
     def test_sign_up(self):
+        """Валидная форма создает новую запись User."""
         users_count = User.objects.count()
         form_data = {
             'first_name': 'Имя',
@@ -24,6 +26,5 @@ class UsersFormsTests(TestCase):
             data=form_data,
             follow=True
         )
-        user = User.objects.last()
         self.assertRedirects(response, reverse('posts:index'))
         self.assertEqual(User.objects.count(), users_count + 1)

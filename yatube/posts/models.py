@@ -23,12 +23,17 @@ class Post(models.Model):
     )
     group = models.ForeignKey(
         'Group',
-        on_delete=models.SET_NULL,  
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
         related_name='posts',
-        verbose_name = 'Группа',
+        verbose_name='Группа',
         help_text='Выберите группу для поста'
+    )
+    image = models.ImageField(
+        'Картинка',
+        upload_to='posts/',
+        blank=True
     )
 
     # Вывел ordering на уровень модели

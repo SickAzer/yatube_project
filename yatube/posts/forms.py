@@ -1,14 +1,13 @@
 from django import forms
 
-from .models import Post, Group
+from .models import Post
 
 
 # Добавил в форму label и helptext а русском
 class PostForm(forms.ModelForm):
-
     class Meta:
         model = Post
-        fields = ('text', 'group')
+        fields = ('text', 'group', 'image')
         labels = {
             'text': 'Текст поста',
             'group': 'Группа'

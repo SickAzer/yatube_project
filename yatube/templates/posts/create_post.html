@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+
 {% block title %}
   Новый пост
 {% endblock %}
@@ -11,7 +12,7 @@
       <div class="col-md-8 p-5">
         <div class="card">
           <div class="card-header">       
-            {% if is_edit %}       
+            {% if form.instance.pk %}       
               Редактировать пост
             {% else %}
               Новый пост
@@ -32,10 +33,10 @@
                 </div>
               {% endfor %}
             {% endif %}
-            {% if is_edit %}        
-              <form method="post" action="{% url 'posts:post_edit' post.pk %}">
+            {% if form.instance.pk %}        
+              <form method="post" enctype="multipart/form-data" action="{% url 'posts:post_edit' form.instance.pk %}">
             {% else %}
-              <form method="post" action="{% url 'posts:post_create' %}">
+              <form method="post" enctype="multipart/form-data" action="{% url 'posts:post_create' %}">
             {% endif %}
                 {% csrf_token %}
                 {% for field in form %}            
@@ -56,7 +57,7 @@
                 {% endfor %}
                 <div class="d-flex justify-content-end">
                   <button type="submit" class="btn btn-primary">
-                    {% if is_edit %}
+                    {% if form.instance.pk %}
                       Сохранить
                     {% else %}
                       Добавить

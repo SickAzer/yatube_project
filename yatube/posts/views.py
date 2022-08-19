@@ -6,20 +6,16 @@ from .models import Post, Group, User
 from .forms import PostForm
 
 
-# Главная страница с недавно опубликованными постами
 def index(request):
+    '''Главная страница с недавно опубликованными постами'''
     posts = Post.objects.select_related('author', 'group').all()
-
     # Создана отдельня функция с paginator'ом, помещена в core
     page_obj = paginate(request, posts)
-    context = {
-        'page_obj': page_obj,
-    }
-    return render(request, 'posts/index.html', context)
+    return render(request, 'posts/index.html', {'page_obj': page_obj})
 
 
-# Страница с постами группы
 def group_posts(request, slug):
+    '''Страница с постами группы'''
     group = get_object_or_404(Group, slug=slug)
     posts = group.posts.all()
     page_obj = paginate(request, posts)
@@ -30,8 +26,8 @@ def group_posts(request, slug):
     return render(request, 'posts/group_list.html', context)
 
 
-# Профиль автора с его постами
 def profile(request, username):
+    '''Профиль автора с его постами'''
     author = get_object_or_404(User, username=username)
     posts = author.posts.all()
     page_obj = paginate(request, posts)
@@ -42,52 +38,36 @@ def profile(request, username):
     return render(request, 'posts/profile.html', context)
 
 
-# Вывод подробной информации о посте
 def post_detail(request, post_id):
-    # Здесь больше будет уместна get_object_or_404
+    '''Вывод подробной информации о посте'''
     post = get_object_or_404(Post, pk=post_id)
-    is_author = False
-    if post.author == request.user:
-        is_author = True
-    context = {
-        'post': post,
-        'is_author': is_author
-    }
-    return render(request, 'posts/post_detail.html', context)
+    return render(request, 'posts/post_detail.html', {'post': post})
 
 
-# Страница создания поста
 @login_required
 def post_create(request):
-    is_edit = False
-    form = PostForm(request.POST or None)
+    '''Страница создания поста'''
+    form = PostForm(request.POST or None, files=request.FILES or None)
     if request.method == 'POST' and form.is_valid():
         post = form.save(commit=False)
         post.author = request.user
         post.save()
         return redirect('posts:profile', username=request.user)
-    context = {
-        'form': form,
-        'is_edit': is_edit
-    }
-    return render(request, 'posts/create_post.html', context)
+    return render(request, 'posts/create_post.html', {'form': form})
 
 
-# Страница редактирования поста
 @login_required
 def post_edit(request, post_id):
+    '''Страница редактирования поста'''
     post = get_object_or_404(Post, pk=post_id)
-    is_edit = True
     if post.author != request.user:
-        return redirect('posts:post_detail', post_id=post_id)
-    # Добавил instance в форму при редактировании
-    form = PostForm(request.POST or None, instance=post)
+        return redirect('posts:profile', username=request.user)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None, 
+        instance=post
+    )
     if request.method == 'POST' and form.is_valid():
-        post.save(update_fields=['text', 'group'])
+        form.save()
         return redirect('posts:post_detail', post_id=post_id)
-    context = {
-        'form': form,
-        'post': post,
-        'is_edit': is_edit
-    }
-    return render(request, 'posts/create_post.html', context)
+    return render(request, 'posts/create_post.html', {'form': form})

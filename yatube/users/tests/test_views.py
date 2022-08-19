@@ -5,7 +5,8 @@ from django import forms
 
 User = get_user_model()
 
-class UsersViewsTests(TestCase):     
+
+class UsersViewsTests(TestCase):
     def setUp(self):
         # Создаем неавторизованный клиент
         self.guest_client = Client()
