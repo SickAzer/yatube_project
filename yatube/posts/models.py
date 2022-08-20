@@ -36,7 +36,7 @@ class Post(models.Model):
         blank=True
     )
 
-    # Вывел ordering на уровень модели
+    
     class Meta:
         ordering = ['-pub_date']
         verbose_name = 'Пост'
@@ -69,3 +69,37 @@ class Group(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(
+    'Post',
+    on_delete=models.CASCADE,
+    related_name='comments',
+    verbose_name='Комментарий',
+    help_text='Добавьте комментарий к посту'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Автор',
+        help_text='Автор комментария'
+    )
+    text = models.TextField(
+        'Текст комментарий',
+        help_text='Напишите здесь свой комментарий'
+    )
+    created = models.DateTimeField(
+        'Дата создания комментария',
+        auto_now_add=True,
+        help_text='Дата создания комментария'
+    )
+    
+    class Meta:
+        ordering = ['-created']
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
+
+    def __str__(self):
+        return self.text[:15]
