@@ -3,6 +3,7 @@ import tempfile
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -59,6 +60,7 @@ class PostsViewsTests(TestCase):
         
 
     def setUp(self):
+        self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
@@ -161,7 +163,7 @@ class PostsViewsTests(TestCase):
             PostsViewsTests.group.title
         )
         self.assertEqual(detailed_post.image, PostsViewsTests.post.image)
-
+        
     def test_create_post_show_correct_context(self):
         """Шаблон post_create сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse('posts:post_create'))
@@ -190,3 +192,30 @@ class PostsViewsTests(TestCase):
             with self.subTest(value=value):
                 form_field = response.context['form'].fields[value]
                 self.assertIsInstance(form_field, expected)
+
+    # def test_index_page_cache(self):
+    #     """Тестирование кэширования страницы index."""
+    #     new_post = Post.objects.create(
+    #         text='Testing cache',
+    #         author=PostsViewsTests.user,
+    #         group=PostsViewsTests.group
+    #     )
+    #     response_before = self.authorized_client.get(
+    #         reverse('posts:index')
+    #     )
+    #     new_post.delete()
+    #     response_after = self.authorized_client.get(
+    #         reverse('posts:index')
+    #     )
+    #     self.assertEqual(
+    #         response_before.content,
+    #         response_after.content
+    #     )
+    #     cache.clear()
+    #     response_no_cache = self.authorized_client.get(
+    #         reverse('posts:index')
+    #     )
+    #     self.assertNotEqual(
+    #         response_after.content,
+    #         response_no_cache.content
+    #     )

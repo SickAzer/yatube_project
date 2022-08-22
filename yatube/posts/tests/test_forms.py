@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from posts.models import Post, Group
+from posts.models import Post, Group, Comment
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
@@ -37,6 +37,7 @@ class PostsFormsTests(TestCase):
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
+        self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
@@ -77,7 +78,7 @@ class PostsFormsTests(TestCase):
             )
         )
         # Убеждаемся, что созданный пост действительно последний в БД
-        post = Post.objects.latest('pub_date')
+        post = Post.objects.latest('created')
         self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertEqual(post.text, form_data['text'])
         self.assertEqual(post.author, PostsFormsTests.user)
@@ -127,3 +128,47 @@ class PostsFormsTests(TestCase):
         self.assertEqual(post.author, PostsFormsTests.user)
         self.assertEqual(post.group, PostsFormsTests.group)
         self.assertEqual(post.image, 'posts/pic.gif')
+
+    def test_add_comment(self):
+        """
+        Валидная форма создает комментарий
+        с перенаправлением на страницу поста.
+        """
+        comment_count = Comment.objects.count()
+        form_data = {
+            'text': 'ПЕРВЫЙ!'
+        }
+        response = self.authorized_client.post(
+                reverse(
+                    'posts:add_comment',
+                    kwargs={'post_id': PostsFormsTests.post.pk}
+                ),
+                data=form_data,
+                follow=True
+            )
+        comment = Comment.objects.latest('created')
+        self.assertRedirects(
+                response,
+                reverse(
+                    'posts:post_detail',
+                    kwargs={'post_id': PostsFormsTests.post.pk}
+        ))
+        self.assertEqual(Comment.objects.count(), comment_count + 1)
+        self.assertEqual(comment.text, form_data['text'])
+        self.assertEqual(comment.post, PostsFormsTests.post)
+        self.assertEqual(comment.author, PostsFormsTests.user)
+    
+    def test_add_comment_not_availible_for_not_authorized(self):
+        comment_count = Comment.objects.count()
+        form_data = {
+            'text': 'ПЕРВЫЙ!'
+        }
+        response = self.guest_client.post(
+                reverse(
+                    'posts:add_comment',
+                    kwargs={'post_id': PostsFormsTests.post.pk}
+                ),
+                data=form_data,
+                follow=True
+            )
+        self.assertEqual(Comment.objects.count(), comment_count)
