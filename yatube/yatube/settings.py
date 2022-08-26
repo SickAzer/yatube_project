@@ -23,13 +23,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'u3s7pe5u^dm%)*2_h(hn@ciisdci4uk0$&64q0)3060(_3ops3x'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '[::1]',
     'testserver',
+    'www.mycozycorner.pythonanywhere.com',
+    'mycozycorner.pythonanywhere.com',
 ]
 
 
