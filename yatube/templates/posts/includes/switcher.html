@@ -1,0 +1,24 @@
+{% if user.is_authenticated %}
+  {% with request.resolver_match.view_name as view_name %}
+  <nav class="navbar justify-content-end">
+    <ul class="nav nav-pills">
+    <li class="nav-item">
+      <a 
+      class="nav-link {% if view_name  == 'posts:index' %}active{% endif %}"
+      href="{% url 'posts:index' %}"
+      >
+      Все посты
+      </a>
+    </li>
+    <li class="nav-item">
+      <a 
+      class="nav-link {% if view_name  == 'posts:follow_index' %}active{% endif %}"
+      href="{% url 'posts:follow_index' %}"
+      >
+      Посты избранных авторов
+      </a>
+    </li>
+    </ul>
+  </nav>
+  {% endwith %}   
+{% endif %}

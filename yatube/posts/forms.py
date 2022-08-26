@@ -22,8 +22,8 @@ class PostForm(forms.ModelForm):
         if not data:
             raise forms.ValidationError('Пост не может быть пустым!')
         return data
- 
-    
+
+
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
@@ -34,7 +34,7 @@ class CommentForm(forms.ModelForm):
         help_texts = {
             'text': 'Напишите свой коммментарий здесь'
         }
-        
+
     def clean_text(self):
         data = self.cleaned_data['text']
         if not data:

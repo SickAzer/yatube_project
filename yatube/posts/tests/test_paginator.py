@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from posts.models import Post, Group
+from posts.models import Post, Group, Follow
 
 User = get_user_model()
 
@@ -12,16 +12,21 @@ class PaginatorViewsTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username='author')
+        cls.user = User.objects.create_user(username='user')
+        cls.author = User.objects.create_user(username='author')
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test-slug',
             description='Тестовое описание'
         )
+        cls.follow = Follow.objects.create(
+            user=cls.user,
+            author=cls.author
+        )
         page_objects = []
         for i in range(1, 16):
             new_post = Post(
-                author=cls.user,
+                author=cls.author,
                 text='Тестовый пост ' + str(i),
                 group=cls.group
             )
@@ -29,9 +34,7 @@ class PaginatorViewsTest(TestCase):
         Post.objects.bulk_create(page_objects)
 
     def setUp(self):
-        # Создаем неавторизованный клиент
-        self.guest_client = Client()
-        # Создаем второй клиент
+        # Создаем клиент
         self.authorized_client = Client()
         # Авторизуем пользователя
         self.authorized_client.force_login(self.user)
@@ -46,8 +49,9 @@ class PaginatorViewsTest(TestCase):
             ),
             reverse(
                 'posts:profile',
-                kwargs={'username': PaginatorViewsTest.user.username}
-            )
+                kwargs={'username': PaginatorViewsTest.author.username}
+            ),
+            reverse('posts:follow_index')
         )
         for page in paginator_pages:
             with self.subTest(page=page):

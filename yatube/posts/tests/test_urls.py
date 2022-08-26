@@ -1,8 +1,9 @@
+from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from http import HTTPStatus
 
-from posts.models import Post, Group
+from posts.models import Post, Group, Follow
 
 User = get_user_model()
 
@@ -11,8 +12,8 @@ class PostsURLTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username='author')
-        cls.another_user = User.objects.create_user(username='not_author')
+        cls.user = User.objects.create_user(username='user')
+        cls.author = User.objects.create_user(username='author')
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test-slug',
@@ -21,6 +22,10 @@ class PostsURLTests(TestCase):
         cls.post = Post.objects.create(
             author=cls.user,
             text='Тестовый пост',
+        )
+        cls.follow = Follow.objects.create(
+            user=cls.user,
+            author=cls.author
         )
 
     def setUp(self):
@@ -31,7 +36,8 @@ class PostsURLTests(TestCase):
         self.authorized_client.force_login(self.user)
         # Создаем дополнительный клиент и авторизуем его
         self.another_authorized_client = Client()
-        self.another_authorized_client.force_login(self.another_user)
+        self.another_authorized_client.force_login(self.author)
+        cache.clear()
 
     def test_urls_exists_at_desired_location_anonymous(self):
         """Страницы c публичным доступом доступны любому пользователю."""
@@ -50,7 +56,8 @@ class PostsURLTests(TestCase):
         """Страницы доступны авторизованному пользователю."""
         urls = (
             '/create/',
-            f'/posts/{PostsURLTests.post.pk}/edit/'
+            f'/posts/{PostsURLTests.post.pk}/edit/',
+            '/follow/'
         )
         for url in urls:
             with self.subTest(url=url):
@@ -63,7 +70,8 @@ class PostsURLTests(TestCase):
         """
         urls = (
             '/create/',
-            f'/posts/{PostsURLTests.post.pk}/edit/'
+            f'/posts/{PostsURLTests.post.pk}/edit/',
+            '/follow/'
         )
         for url in urls:
             with self.subTest(url=url):
@@ -79,7 +87,10 @@ class PostsURLTests(TestCase):
             f'/posts/{PostsURLTests.post.pk}/edit/',
             follow=True
         )
-        self.assertRedirects(response, '/profile/not_author/')
+        self.assertRedirects(
+            response,
+            f'/profile/{PostsURLTests.author.username}/'
+        )
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -88,8 +99,9 @@ class PostsURLTests(TestCase):
             f'/group/{PostsURLTests.group.slug}/': 'posts/group_list.html',
             f'/profile/{PostsURLTests.user.username}/': 'posts/profile.html',
             f'/posts/{PostsURLTests.post.pk}/': 'posts/post_detail.html',
+            '/create/': 'posts/create_post.html',
             f'/posts/{PostsURLTests.post.pk}/edit/': 'posts/create_post.html',
-            '/create/': 'posts/create_post.html'
+            '/follow/': 'posts/follow.html'
         }
         for address, template in url_names_templates.items():
             with self.subTest(address=address):

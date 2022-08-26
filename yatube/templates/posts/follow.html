@@ -1,15 +1,14 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
 {% load thumbnail %}
 
-{% block title %}Посты сообщества {{ group }}{% endblock %}
+{% block title %}Посты избранных авторов{% endblock %}
 
 {% block content %}
 <div class="container py-5 col-12 col-md-10">
-  <h2>{{ group }}</h2>
-  <p>{{ group.description }}</p>
+  <h2>Посты ваших избранных авторов</h2>
   {% include 'posts/includes/switcher.html' %}
     {% for post in page_obj %}
-      {% with show_group=False %}
+      {% with show_group=True %}
         {% include 'posts/includes/post_list.html' %}
       {% endwith %}
     {% endfor %}

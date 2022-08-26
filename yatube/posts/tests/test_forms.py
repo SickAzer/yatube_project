@@ -10,8 +10,8 @@ from django.urls import reverse
 from posts.models import Post, Group, Comment
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
-
 User = get_user_model()
+
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostsFormsTests(TestCase):
@@ -29,8 +29,7 @@ class PostsFormsTests(TestCase):
             author=cls.user,
             group=cls.group
         )
-        
-        
+
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
@@ -139,36 +138,37 @@ class PostsFormsTests(TestCase):
             'text': 'ПЕРВЫЙ!'
         }
         response = self.authorized_client.post(
-                reverse(
-                    'posts:add_comment',
-                    kwargs={'post_id': PostsFormsTests.post.pk}
-                ),
-                data=form_data,
-                follow=True
-            )
+            reverse(
+                'posts:add_comment',
+                kwargs={'post_id': PostsFormsTests.post.pk}
+            ),
+            data=form_data,
+            follow=True
+        )
         comment = Comment.objects.latest('created')
         self.assertRedirects(
-                response,
-                reverse(
-                    'posts:post_detail',
-                    kwargs={'post_id': PostsFormsTests.post.pk}
-        ))
+            response,
+            reverse(
+                'posts:post_detail',
+                kwargs={'post_id': PostsFormsTests.post.pk}
+            ))
         self.assertEqual(Comment.objects.count(), comment_count + 1)
         self.assertEqual(comment.text, form_data['text'])
         self.assertEqual(comment.post, PostsFormsTests.post)
         self.assertEqual(comment.author, PostsFormsTests.user)
-    
+
     def test_add_comment_not_availible_for_not_authorized(self):
+        '''Комментирование недоступно для неавторизованных пользователей'''
         comment_count = Comment.objects.count()
         form_data = {
             'text': 'ПЕРВЫЙ!'
         }
-        response = self.guest_client.post(
-                reverse(
-                    'posts:add_comment',
-                    kwargs={'post_id': PostsFormsTests.post.pk}
-                ),
-                data=form_data,
-                follow=True
-            )
+        self.guest_client.post(
+            reverse(
+                'posts:add_comment',
+                kwargs={'post_id': PostsFormsTests.post.pk}
+            ),
+            data=form_data,
+            follow=True
+        )
         self.assertEqual(Comment.objects.count(), comment_count)

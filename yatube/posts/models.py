@@ -33,7 +33,6 @@ class Post(CreatedModel):
         blank=True
     )
 
-    
     class Meta:
         ordering = ['-created']
         verbose_name = 'Пост'
@@ -70,11 +69,11 @@ class Group(models.Model):
 
 class Comment(CreatedModel):
     post = models.ForeignKey(
-    'Post',
-    on_delete=models.CASCADE,
-    related_name='comments',
-    verbose_name='Комментарий',
-    help_text='Добавьте комментарий к посту'
+        'Post',
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Пост',
+        help_text='Добавьте комментарий к посту'
     )
     author = models.ForeignKey(
         User,
@@ -87,7 +86,7 @@ class Comment(CreatedModel):
         'Текст комментарий',
         help_text='Напишите здесь свой комментарий'
     )
-    
+
     class Meta:
         ordering = ['-created']
         verbose_name = 'Комментарий'
@@ -95,3 +94,39 @@ class Comment(CreatedModel):
 
     def __str__(self):
         return self.text[:15]
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower',
+        verbose_name='Подписчик',
+        help_text='Подписчик автора'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following',
+        verbose_name='Автор',
+        help_text='Автор, на которого подписались'
+    )
+
+    class Meta:
+        constraints = [
+            # Ограничиваем подписку на себя
+            models.CheckConstraint(
+                check=~models.Q(user=models.F('author')),
+                name='user_not_follows_self'
+            ),
+            # Ограничиваем создание дублирующих подписок
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique_follow'
+            )
+        ]
+        verbose_name = 'Подписки'
+        verbose_name_plural = 'Подписки'
+
+    def __str__(self):
+        return f'{self.user.username} подписан на {self.author.username}'

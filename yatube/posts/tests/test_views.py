@@ -9,20 +9,19 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django import forms
 
-from posts.models import Post, Group
+from posts.models import Post, Group, Comment, Follow
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
-
-
 User = get_user_model()
+
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostsViewsTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username='author')
-        cls.second_user = User.objects.create_user(username='not_author')
+        cls.user = User.objects.create_user(username='some_user')
+        cls.author = User.objects.create_user(username='some_author')
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test-slug',
@@ -35,14 +34,14 @@ class PostsViewsTests(TestCase):
         )
         uploaded = SimpleUploadedFile(
             name='pic.gif',
-            content=(            
-             b'\x47\x49\x46\x38\x39\x61\x02\x00'
-             b'\x01\x00\x80\x00\x00\x00\x00\x00'
-             b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
-             b'\x00\x00\x00\x2C\x00\x00\x00\x00'
-             b'\x02\x00\x01\x00\x00\x02\x02\x0C'
-             b'\x0A\x00\x3B'
-        ),
+            content=(
+                b'\x47\x49\x46\x38\x39\x61\x02\x00'
+                b'\x01\x00\x80\x00\x00\x00\x00\x00'
+                b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+                b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+                b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+                b'\x0A\x00\x3B'
+            ),
             content_type='image/gif'
         )
         cls.post = Post.objects.create(
@@ -51,44 +50,50 @@ class PostsViewsTests(TestCase):
             group=cls.group,
             image=uploaded
         )
-        
-        
+        cls.comment = Comment.objects.create(
+            post=cls.post,
+            author=cls.user,
+            text='Тестовый комментарий'
+        )
+
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
-        
 
     def setUp(self):
         self.guest_client = Client()
         self.authorized_client = Client()
-        self.authorized_client.force_login(self.user)
+        self.authorized_client.force_login(PostsViewsTests.user)
+        cache.clear()
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
         templates_page_names = {
             reverse('posts:index'): 'posts/index.html',
-            (reverse(
+            reverse(
                 'posts:group_list',
                 kwargs={'slug': PostsViewsTests.group.slug}
-            )):
+            ):
                 'posts/group_list.html',
-            (reverse(
+            reverse(
                 'posts:profile',
                 kwargs={'username': PostsViewsTests.user.username}
-            )):
+            ):
                 'posts/profile.html',
-            (reverse(
+            reverse(
                 'posts:post_detail',
                 kwargs={'post_id': PostsViewsTests.post.pk}
-            )):
+            ):
                 'posts/post_detail.html',
             reverse('posts:post_create'): 'posts/create_post.html',
-            (reverse(
+            reverse(
                 'posts:post_edit',
                 kwargs={'post_id': PostsViewsTests.post.pk}
-            )):
+            ):
                 'posts/create_post.html',
+            reverse('posts:follow_index'): 'posts/follow.html',
+            '/nonexist-page/': 'core/404.html'
         }
         for reverse_name, template in templates_page_names.items():
             with self.subTest(template=template):
@@ -139,7 +144,7 @@ class PostsViewsTests(TestCase):
         """Пост автора группой не появляется в профиле другого автора"""
         response = self.authorized_client.get(reverse(
             'posts:profile',
-            kwargs={'username': PostsViewsTests.second_user.username}
+            kwargs={'username': PostsViewsTests.author.username}
         ))
         # Проверяем, что профиль второго автора пуст
         # и созданный в классе пост отсутствует
@@ -163,7 +168,7 @@ class PostsViewsTests(TestCase):
             PostsViewsTests.group.title
         )
         self.assertEqual(detailed_post.image, PostsViewsTests.post.image)
-        
+
     def test_create_post_show_correct_context(self):
         """Шаблон post_create сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse('posts:post_create'))
@@ -193,29 +198,90 @@ class PostsViewsTests(TestCase):
                 form_field = response.context['form'].fields[value]
                 self.assertIsInstance(form_field, expected)
 
-    # def test_index_page_cache(self):
-    #     """Тестирование кэширования страницы index."""
-    #     new_post = Post.objects.create(
-    #         text='Testing cache',
-    #         author=PostsViewsTests.user,
-    #         group=PostsViewsTests.group
-    #     )
-    #     response_before = self.authorized_client.get(
-    #         reverse('posts:index')
-    #     )
-    #     new_post.delete()
-    #     response_after = self.authorized_client.get(
-    #         reverse('posts:index')
-    #     )
-    #     self.assertEqual(
-    #         response_before.content,
-    #         response_after.content
-    #     )
-    #     cache.clear()
-    #     response_no_cache = self.authorized_client.get(
-    #         reverse('posts:index')
-    #     )
-    #     self.assertNotEqual(
-    #         response_after.content,
-    #         response_no_cache.content
-    #     )
+    def test_index_page_cache(self):
+        """Тестирование кэширования страницы index."""
+        new_post = Post.objects.create(
+            text='Testing cache',
+            author=PostsViewsTests.user,
+            group=PostsViewsTests.group
+        )
+        response_before = self.authorized_client.get(
+            reverse('posts:index')
+        )
+        new_post.delete()
+        response_after = self.authorized_client.get(
+            reverse('posts:index')
+        )
+        self.assertEqual(
+            response_before.content,
+            response_after.content
+        )
+        cache.clear()
+        response_no_cache = self.authorized_client.get(
+            reverse('posts:index')
+        )
+        self.assertNotEqual(
+            response_after.content,
+            response_no_cache.content
+        )
+
+    def test_authorized_user_can_follow_and_unfollow(self):
+        '''
+        Авторизованный пользователь может подписываться
+        и отписываться от авторов
+        '''
+        follow_count = Follow.objects.count()
+        self.authorized_client.get(reverse(
+            'posts:profile_follow',
+            kwargs={'username': PostsViewsTests.author.username}
+        ))
+        follow = Follow.objects.last()
+        self.assertEqual(Follow.objects.count(), follow_count + 1)
+        self.assertEqual(follow.user, PostsViewsTests.user)
+        self.assertEqual(follow.author, PostsViewsTests.author)
+        self.authorized_client.get(reverse(
+            'posts:profile_unfollow',
+            kwargs={'username': PostsViewsTests.author.username}
+        ))
+        self.assertEqual(Follow.objects.count(), follow_count)
+        self.assertNotEqual(Follow.objects.last(), follow)
+
+    def test_post_shows_only_to_followers_follow_index(self):
+        '''
+        Посты появляются на странице избранных авторов
+        у подписанных на этих авторов пользователей
+        '''
+        new_user = User.objects.create_user(username='new_user')
+        authorized_client = Client()
+        authorized_client.force_login(new_user)
+        authorized_client.get(reverse(
+            'posts:profile_follow',
+            kwargs={'username': PostsViewsTests.user.username}
+        ))
+        response_follow = authorized_client.get(
+            reverse('posts:follow_index')
+        )
+        # Проверяем, что пост появился с корректным содержимым
+        first_object = response_follow.context['page_obj'].object_list[0]
+        self.assertEqual(first_object.text, PostsViewsTests.post.text)
+        self.assertEqual(
+            first_object.author.username,
+            PostsViewsTests.user.username
+        )
+        self.assertEqual(
+            first_object.group.title,
+            PostsViewsTests.group.title
+        )
+        self.assertEqual(
+            first_object.image,
+            PostsViewsTests.post.image
+        )
+        authorized_client.get(reverse(
+            'posts:profile_unfollow',
+            kwargs={'username': PostsViewsTests.user.username}
+        ))
+        response_unfollow = authorized_client.get(
+            reverse('posts:follow_index')
+        )
+        # Проверяем, что пост отсутствует после отписки
+        self.assertEqual(len(response_unfollow.context['page_obj']), 0)
