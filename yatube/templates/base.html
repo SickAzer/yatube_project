@@ -16,7 +16,10 @@
       {% block title %}
       {% endblock %} 
     </title>
+    
   </head>
+{% load tz %}
+{% timezone "Europe/Moscow" %}
   <body>
     <header >
       {% include 'includes/header.html' %}
@@ -30,4 +33,6 @@
       </footer>
     </div>
   </body>
-</html> 
+{% endtimezone %}
+</html>
+ 
