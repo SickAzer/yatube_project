@@ -2,7 +2,7 @@
 
 ### Description
 
-Yatube is a social networks where everyone can share their opinion about movies, TV shows, books and other stuff ;)
+Yatube is a blog where everyone can share their opinion about movies, TV shows, books and other stuff ;)
 
 ### Technology 
 Python 3.7 
