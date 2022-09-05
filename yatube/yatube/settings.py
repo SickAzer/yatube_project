@@ -80,6 +80,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.year.year',
+                'core.context_processors.groups_all.groups_all',
             ],
         },
     },
@@ -137,13 +138,15 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
-
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'static/css'), 
+)
 LOGIN_URL = 'users:login'
 
 LOGIN_REDIRECT_URL = 'posts:index'
 
-# LOGOUT_REDIRECT_URL = '/auth/logout/'
+# LOGOUT_REDIRECT_URL = 'posts:index'
 
 #  подключаем движок filebased.EmailBackend
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
@@ -171,3 +174,5 @@ CACHES = {
 INTERNAL_IPS = [
     '127.0.0.1',
 ] 
+
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')

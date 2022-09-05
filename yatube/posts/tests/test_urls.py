@@ -1,6 +1,7 @@
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
+from django.urls import reverse
 from http import HTTPStatus
 
 from posts.models import Post, Group, Follow
@@ -37,15 +38,23 @@ class PostsURLTests(TestCase):
         # Создаем дополнительный клиент и авторизуем его
         self.another_authorized_client = Client()
         self.another_authorized_client.force_login(self.author)
-        cache.clear()
 
     def test_urls_exists_at_desired_location_anonymous(self):
         """Страницы c публичным доступом доступны любому пользователю."""
         urls = (
-            '/',
-            f'/group/{PostsURLTests.group.slug}/',
-            f'/profile/{PostsURLTests.user.username}/',
-            f'/posts/{PostsURLTests.post.pk}/'
+            reverse('posts:index'),
+            reverse(
+                'posts:group_list',
+                kwargs={'slug': PostsURLTests.group.slug}
+            ),
+            reverse(
+                'posts:profile',
+                kwargs={'username': PostsURLTests.user.username}
+            ),
+            reverse(
+                'posts:post_detail',
+                kwargs={'post_id': PostsURLTests.post.pk}
+            )
         )
         for url in urls:
             with self.subTest(url=url):
@@ -55,9 +64,12 @@ class PostsURLTests(TestCase):
     def test_urls_exists_at_desired_location_authorized(self):
         """Страницы доступны авторизованному пользователю."""
         urls = (
-            '/create/',
-            f'/posts/{PostsURLTests.post.pk}/edit/',
-            '/follow/'
+            reverse('posts:post_create'),
+            reverse(
+                'posts:post_edit',
+                kwargs={'post_id': PostsURLTests.post.pk}
+            ),
+            reverse('posts:follow_index')
         )
         for url in urls:
             with self.subTest(url=url):
@@ -69,9 +81,12 @@ class PostsURLTests(TestCase):
         Страницы перенаправляют неавторизованного пользователя для логина.
         """
         urls = (
-            '/create/',
-            f'/posts/{PostsURLTests.post.pk}/edit/',
-            '/follow/'
+            reverse('posts:post_create'),
+            reverse(
+                'posts:post_edit',
+                kwargs={'post_id': PostsURLTests.post.pk}
+            ),
+            reverse('posts:follow_index')
         )
         for url in urls:
             with self.subTest(url=url):
@@ -84,24 +99,42 @@ class PostsURLTests(TestCase):
         если авторизованный пользователь не является автором поста.
         """
         response = self.another_authorized_client.get(
-            f'/posts/{PostsURLTests.post.pk}/edit/',
+            reverse(
+                'posts:post_edit',
+                kwargs={'post_id': PostsURLTests.post.pk}
+            ),
             follow=True
         )
         self.assertRedirects(
             response,
-            f'/profile/{PostsURLTests.author.username}/'
+            reverse(
+                'posts:profile',
+                kwargs={'username': PostsURLTests.author.username}
+            )
         )
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
         url_names_templates = {
-            '/': 'posts/index.html',
-            f'/group/{PostsURLTests.group.slug}/': 'posts/group_list.html',
-            f'/profile/{PostsURLTests.user.username}/': 'posts/profile.html',
-            f'/posts/{PostsURLTests.post.pk}/': 'posts/post_detail.html',
-            '/create/': 'posts/create_post.html',
-            f'/posts/{PostsURLTests.post.pk}/edit/': 'posts/create_post.html',
-            '/follow/': 'posts/follow.html'
+            reverse('posts:index'): 'posts/index.html',
+            reverse(
+                'posts:group_list',
+                kwargs={'slug': PostsURLTests.group.slug}
+            ): 'posts/group_list.html',
+            reverse(
+                'posts:profile',
+                kwargs={'username': PostsURLTests.user.username}
+            ): 'posts/profile.html',
+            reverse(
+                'posts:post_detail',
+                kwargs={'post_id': PostsURLTests.post.pk}
+            ): 'posts/post_detail.html',
+            reverse('posts:post_create'): 'posts/create_post.html',
+            reverse(
+                'posts:post_edit',
+                kwargs={'post_id': PostsURLTests.post.pk}
+            ): 'posts/create_post.html',
+            reverse('posts:follow_index'): 'posts/follow.html'
         }
         for address, template in url_names_templates.items():
             with self.subTest(address=address):

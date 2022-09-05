@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% load thumbnail %}
-{% block title %}Профайл пользователя {{ author.get_full_name }}{% endblock %}
+{% block title %}{{ author.get_full_name }}{% endblock %}
 {% block content %}
 <div class="container py-5 col-12 col-md-10">
-  <h2>Профиль пользователя {{ author.get_full_name }} (всего постов: {{  posts_count }})</h2>  
+  <h2>{{ author.get_full_name }} (всего постов: {{ author.posts.count }})</h2>  
   {% if user != author and following  %}
   <p class="text-start">
     <a

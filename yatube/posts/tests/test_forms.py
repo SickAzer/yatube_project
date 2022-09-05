@@ -69,15 +69,15 @@ class PostsFormsTests(TestCase):
             data=form_data,
             follow=True
         )
+        post = Post.objects.latest('created')
         self.assertRedirects(
             response,
             reverse(
-                'posts:profile',
-                kwargs={'username': PostsFormsTests.user.username}
+                'posts:post_detail',
+                kwargs={'post_id': post.pk}
             )
         )
         # Убеждаемся, что созданный пост действительно последний в БД
-        post = Post.objects.latest('created')
         self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertEqual(post.text, form_data['text'])
         self.assertEqual(post.author, PostsFormsTests.user)
@@ -123,6 +123,7 @@ class PostsFormsTests(TestCase):
                 kwargs={'post_id': PostsFormsTests.post.pk}
             )
         )
+        self.assertIn('form', response.context)
         self.assertEqual(post.text, form_data['text'])
         self.assertEqual(post.author, PostsFormsTests.user)
         self.assertEqual(post.group, PostsFormsTests.group)

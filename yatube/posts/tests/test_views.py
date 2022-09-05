@@ -65,7 +65,7 @@ class PostsViewsTests(TestCase):
         self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(PostsViewsTests.user)
-        cache.clear()
+        
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -96,7 +96,7 @@ class PostsViewsTests(TestCase):
             '/nonexist-page/': 'core/404.html'
         }
         for reverse_name, template in templates_page_names.items():
-            with self.subTest(template=template):
+            with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
 

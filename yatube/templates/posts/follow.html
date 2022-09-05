@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container py-5 col-12 col-md-10">
-  <h2>Посты ваших избранных авторов</h2>
+  <h2>Посты избранных авторов</h2>
   {% include 'posts/includes/switcher.html' %}
     {% for post in page_obj %}
       {% with show_group=True %}

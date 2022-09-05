@@ -1,15 +1,18 @@
 from django.contrib import admin
 
-from .models import Post, Group, Comment, Follow
+from .models import Post, Group, Comment, Follow, Like
 
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display = ('pk',
+                    'title',
                     'text',
                     'created',
                     'author',
-                    'group'
+                    'group',
+                    'image',
+                    'like_count'
                     )
     list_editable = ('group',)
     search_fields = ('text',)
@@ -23,6 +26,7 @@ class GroupAdmin(admin.ModelAdmin):
                     'title',
                     'slug',
                     'description',
+                    'creator'
                     )
     search_fields = ('title',)
     empty_value_display = '-пусто-'
@@ -46,3 +50,5 @@ class FollowAdmin(admin.ModelAdmin):
                     'author',
                     )
     empty_value_display = '-пусто-'
+    
+admin.site.register(Like)

@@ -5,7 +5,13 @@
 
 {% block content %}
 <div class="container py-5 col-12 col-md-10">
-  <h2>{{ group }}</h2>
+  <h2>{{ group }}
+    {% if group.creator == request.user %}
+      <span><a href="{% url 'posts:group_delete' group.slug %}" class="btn btn-primary" style="float:right;">
+        Удалить группу
+      </a></span>
+    {% endif %}
+  </h2>
   <p>{{ group.description }}</p>
   {% include 'posts/includes/switcher.html' %}
     {% for post in page_obj %}

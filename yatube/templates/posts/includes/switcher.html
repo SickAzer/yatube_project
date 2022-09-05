@@ -1,24 +1,35 @@
-{% if user.is_authenticated %}
-  {% with request.resolver_match.view_name as view_name %}
-  <nav class="navbar justify-content-end">
-    <ul class="nav nav-pills">
+{% with request.resolver_match.view_name as view_name %}
+<nav class="navbar justify-content-end">
+  <ul class="nav nav-pills">
     <li class="nav-item">
       <a 
       class="nav-link {% if view_name  == 'posts:index' %}active{% endif %}"
       href="{% url 'posts:index' %}"
       >
       Все посты
+    </a>
+  </li>
+  {% if user.is_authenticated %}
+    <li class="nav-item">
+      <a class="nav-link {% if view_name  == 'posts:follow_index' %}active{% endif %}"
+        href="{% url 'posts:follow_index' %}">Посты избранных авторов
       </a>
     </li>
     <li class="nav-item">
-      <a 
-      class="nav-link {% if view_name  == 'posts:follow_index' %}active{% endif %}"
-      href="{% url 'posts:follow_index' %}"
-      >
-      Посты избранных авторов
+      <a class="nav-link {% if view_name  == 'posts:profile' and author == request.user %}active{% endif %}"
+        href="{% url 'posts:profile' request.user %}">Мои посты
       </a>
     </li>
-    </ul>
-  </nav>
-  {% endwith %}   
-{% endif %}
+  {% endif %}
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle {% if view_name  == 'posts:group_list' %}active{% endif %}"
+        data-bs-toggle="dropdown" role="button" aria-expanded="false">Посты группы</a>
+      <ul class="dropdown-menu">
+        {% for group in groups_all %}
+          <li><a class="dropdown-item" href="{% url 'posts:group_list' group.slug %}">{{ group.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </li>
+  </ul>
+</nav>
+{% endwith %}   

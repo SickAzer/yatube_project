@@ -59,11 +59,11 @@ class PaginatorViewsTest(TestCase):
                 response_page_2 = self.authorized_client.get(page + '?page=2')
                 # На первой странице должно быть 10 постов
                 self.assertEqual(
-                    len(response_page_1.context['page_obj'].object_list),
+                    len(response_page_1.context.get('page_obj')),
                     10
                 )
                 # На второй странице должно быть 5 постов
                 self.assertEqual(
-                    len(response_page_2.context['page_obj'].object_list),
+                    len(response_page_2.context.get('page_obj')),
                     5
                 )

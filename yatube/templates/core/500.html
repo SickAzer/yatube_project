@@ -1,5 +1,21 @@
-{% extends "base.html" %}
-{% block title %}Custom 500{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Ошибка обработки запроса{% endblock %}
 {% block content %}
-    <h1>Custom 500</h1>
-{% endblock %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 p-5">
+      <div class="card text-center">
+        <div class="card-header">
+            <h1>Ошибка 500</h1>
+        </div>
+        <div class="card-body">
+          <p>Мы не смогли обработать Ваш запрос, но мы это исправим.<br>
+            Возможно.<br> 
+            Извините за неудобство.</p>
+          <a href="{% url 'posts:index' %}" class="btn btn-primary">Вернуться домой</a>
+        </div>
+      </div> <!-- col -->
+    </div> <!-- row --> 
+  </div>        
+</div>
+{% endblock  %}

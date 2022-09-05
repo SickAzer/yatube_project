@@ -1,28 +1,51 @@
 {% load thumbnail %}
-<article class="border rounded bg-white text-dark" style="padding: 15px; margin-bottom: 15px">
+{% load static %}
+
+<article class="border rounded bg-white" style="padding: 15px; margin-bottom: 15px">
+  {% csrf_token %}
   <ul>
-      <p class="text-muted">
-      <em>
-          Опубликовано {{ post.created|date:"d E Y h:i" }}<br>
-      </em>
-      </p>
-      <p>
+    {% if not user.is_authenticated %}
+      <a href="{% url 'users:login' %}">
+        <button style="float:right;" class="btn btn-light like-button{{post.id}}">🤍</button>
+      </a>
+    {% else %}
+      <form action="{% url 'posts:like_unlike_post' %}" method="POST" class='like-form' id='{{post.id}}'>
+        {% csrf_token %}
+        <input type="hidden" name="post_id" value={{post.id}}>
+        <button style="float:right;" type="submit" class="btn btn-light like-button{{post.id}}">
+          {% if request.user not in post.liked.all %}
+          🤍
+          {% else %}
+          ❤️
+          {% endif %}
+        </button>
+      </form>
+    {% endif %}
+    <p class="text-muted"><em>Опубликовано {{ post.created|date:"d E Y г.  G:i" }}</em>
+        </p>
+    <p> 
+      Автор:  
       <strong>
-          Автор:  
-          <a class="text-decoration-none" href="{% url 'posts:profile' post.author %}">{{ post.author.get_full_name }}</a>
+        <a class="text-decoration-none" href="{% url 'posts:profile' post.author %}">
+          {% if post.author.get_full_name %}{{ post.author.get_full_name }}{% else %}{{ post.author }}{% endif %}</a>
       </strong>
-      </p>
+      <span class="like-count{{post.id}} text-muted" style="float:right; margin-right: 20px;"> {{post.num_likes}} </span>
+    </p>
+    <h5>{{ post.title }} </h5>
   </ul>
   {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
       <img class="card-img my-2 rounded" src="{{ im.url }}">
   {% endthumbnail %}
-  <p class="text-justify">{{ post.text }}</p>    
-  {% if show_group and post.group %}
-    <p>
-      Группа <a class="text-decoration-none" href="{% url 'posts:group_list' post.group.slug %}"><em>"{{ post.group }}"</em></a>
-    </p>
-  {% endif %}
-    <p class="text-end">  
-        <a href="{% url 'posts:post_detail' post.pk %}" class="btn btn-secondary">Подробнее</a> 
-    </p>
+  <p class="text-break" style='white-space: pre-wrap'>{{ post.text }}</p>    
+  <p>
+    {% if show_group and post.group %}
+    Группа <a class="text-decoration-none" href="{% url 'posts:group_list' post.group.slug %}"><em>"{{ post.group }}"</em></a><br>
+    {% endif %}
+    <a href="{% url 'posts:post_detail' post.pk %}" class="btn btn-secondary" style="float:right;">Подробнее</a><br>
+  </p>
+  {% with post.comments_count as comments_count %}
+    {% if comments_count %} 
+      <p class="text-end text-muted" style="margin-bottom: 0px;"><small>Комментарии: {{ comments_count }}</small></p> 
+    {% endif %}
+  {% endwith %}   
 </article>

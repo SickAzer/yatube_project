@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Удаление группы
+{% endblock %}
+
+{% block content %}
+  <div class="container py-5"> 
+    <div class="row justify-content-center">
+      <div class="col-md-8 p-5">
+        <div class="card">
+          <div class="card-header">
+            Удаление группы
+          </div>
+          <div class="card-body"> 
+            <form method="post">{% csrf_token %}
+              <p>Вы уверены, что хотите удалить группу "{{ object }}"?</p>
+              <input type="submit" class="btn btn-primary" value="Подтвердить">
+              <input type="button" class="btn btn-secondary" style="float:right;" value="Отмена" onclick="history.back()"/> 
+            </form>
+          </div> <!-- card body -->
+        </div> <!-- card -->
+      </div> <!-- col -->
+    </div> <!-- row -->
+  </div>
+{% endblock %}

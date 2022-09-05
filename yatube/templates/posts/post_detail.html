@@ -10,7 +10,7 @@
           <ul class="list-group list-group-flush">
             <li class="list-group-item">
               Дата публикации: <br> 
-              {{ post.created|date:"d E Y h:i" }} 
+              {{ post.created|date:"d E Y г.  G:i" }} 
             </li>
             {% if post.group %}   
             <li class="list-group-item">
@@ -55,10 +55,31 @@
         </article>
       </aside>
       <article class="col-12 col-md-9 border rounded bg-white text-dark">
+        <br>
+        {% if not user.is_authenticated %}
+        <a href="{% url 'users:login' %}">
+        <button style="float:right;" class="btn btn-light like-button{{post.id}}">🤍</button>
+      </a>
+      {% else %}
+      <form action="{% url 'posts:like_unlike_post' %}" method="POST" class='like-form' id='{{post.id}}'>
+        {% csrf_token %}
+        <input type="hidden" name="post_id" value={{post.id}}>
+        <button style="float:right;" type="submit" class="btn btn-light like-button{{post.id}}">
+          {% if request.user not in post.liked.all %}
+          🤍
+          {% else %}
+          ❤️
+          {% endif %}
+        </button>
+      </form>
+      {% endif %}
+      <h5>{{ post.title }} </h5>
+      <br>
+      <p class="like-count{{post.id}} text-muted" style="float:right; margin-right: 20px;"> {{post.num_likes}} </p>
         {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
           <img class="card-img my-2 rounded" src="{{ im.url }}">
         {% endthumbnail %}
-        <p class="text-justify">{{ post.text }}</p>
+        <p class="text-break" style='white-space: pre-wrap'>{{ post.text }}</p>
         {% if user.is_authenticated %}
           <div class="card my-4 mb-2">
             <h5 class="card-header">Добавить комментарий:</h5>
@@ -79,7 +100,7 @@
           <div class="media mb-4">
             <div class="media-body">
               <h5 class="mt-0">
-                <a href="{% url 'posts:profile' comment.author.username %}">
+                <a class="text-decoration-none" href="{% url 'posts:profile' comment.author.username %}">
                   {{ comment.author.get_full_name }}
                 </a>
               </h5>
