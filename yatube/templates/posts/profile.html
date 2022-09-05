@@ -3,7 +3,7 @@
 {% block title %}{{ author.get_full_name }}{% endblock %}
 {% block content %}
 <div class="container py-5 col-12 col-md-10">
-  <h2>{{ author.get_full_name }} (всего постов: {{ author.posts.count }})</h2>  
+  <h2>{% if author.get_full_name %}{{ author.get_full_name }}{% else %}{{ author }}{% endif %} (всего постов: {{ author.posts.count }})</h2>  
   {% if user != author and following  %}
   <p class="text-start">
     <a
